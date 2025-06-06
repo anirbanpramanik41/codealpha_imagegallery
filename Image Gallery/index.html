@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Image Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+
+        .gallery-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .filter-buttons {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .filter-button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .filter-button:hover {
+            background-color: #555;
+        }
+
+        .filter-button.active {
+            background-color: #4CAF50;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.05);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+        }
+
+        .lightbox.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90vh;
+        }
+
+        .lightbox-content img {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .nav-button {
+            background-color: rgba(255, 255, 255, 0.8);
+            color: #333;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .nav-button:hover {
+            background-color: white;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            color: #333;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 15px;
+            }
+
+            .filter-buttons {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="gallery-container">
+        <div class="filter-buttons">
+            <button class="filter-button active" data-category="all">All</button>
+            <button class="filter-button" data-category="nature">Nature</button>
+            <button class="filter-button" data-category="architecture">Architecture</button>
+            <button class="filter-button" data-category="travel">Travel</button>
+        </div>
+
+        <div class="gallery">
+            <!-- Add your images here with data-category attributes -->
+            <div class="gallery-item" data-category="nature">
+                <img src="https://picsum.photos/id/10/800/600" alt="Nature 1">
+            <img src= "E:\Image Gallery\nature 2.jpg" alt="Nature 2">
+            </div>
+            <div class="gallery-item" data-category="architecture">
+                <img src="https://picsum.photos/id/20/800/600" alt="Architecture 1">
+                <img src="E:\Image Gallery\architecture 2.jpeg" alt="Architecture 2">
+            </div>
+            <div class="gallery-item" data-category="travel">
+                <img src="https://picsum.photos/id/30/800/600" alt="Travel 1">
+                <img src="E:\Image Gallery\travel.jpeg" alt="Travel 2">
+            </div>
+            <!-- Add more images as needed -->
+        </div>
+    </div>
+
+    <div class="lightbox">
+        <div class="lightbox-content">
+            <img src="" alt="Lightbox Image">
+            <div class="lightbox-nav">
+                <button class="nav-button prev">Previous</button>
+                <button class="nav-button next">Next</button>
+            </div>
+            <button class="close-button">Close</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gallery = document.querySelector('.gallery');
+            const lightbox = document.querySelector('.lightbox');
+            const lightboxImg = lightbox.querySelector('img');
+            const closeButton = lightbox.querySelector('.close-button');
+            const prevButton = lightbox.querySelector('.prev');
+            const nextButton = lightbox.querySelector('.next');
+            const filterButtons = document.querySelectorAll('.filter-button');
+            let currentIndex = 0;
+            let filteredItems = [];
+
+            // Filter functionality
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const category = button.dataset.category;
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    const items = document.querySelectorAll('.gallery-item');
+                    items.forEach(item => {
+                        if (category === 'all' || item.dataset.category === category) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            });
+
+            // Lightbox functionality
+            gallery.addEventListener('click', (e) => {
+                const clickedItem = e.target.closest('.gallery-item');
+                if (!clickedItem) return;
+
+                filteredItems = Array.from(document.querySelectorAll('.gallery-item')).filter(
+                    item => item.style.display !== 'none'
+                );
+                currentIndex = filteredItems.indexOf(clickedItem);
+                updateLightboxImage();
+                lightbox.classList.add('active');
+            });
+
+            function updateLightboxImage() {
+                const currentItem = filteredItems[currentIndex];
+                const img = currentItem.querySelector('img');
+                lightboxImg.src = img.src;
+                lightboxImg.alt = img.alt;
+            }
+
+            closeButton.addEventListener('click', () => {
+                lightbox.classList.remove('active');
+            });
+
+            prevButton.addEventListener('click', () => {
+                currentIndex = (currentIndex - 1 + filteredItems.length) % filteredItems.length;
+                updateLightboxImage();
+            });
+
+            nextButton.addEventListener('click', () => {
+                currentIndex = (currentIndex + 1) % filteredItems.length;
+                updateLightboxImage();
+            });
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (!lightbox.classList.contains('active')) return;
+
+                if (e.key === 'Escape') {
+                    lightbox.classList.remove('active');
+                } else if (e.key === 'ArrowLeft') {
+                    currentIndex = (currentIndex - 1 + filteredItems.length) % filteredItems.length;
+                    updateLightboxImage();
+                } else if (e.key === 'ArrowRight') {
+                    currentIndex = (currentIndex + 1) % filteredItems.length;
+                    updateLightboxImage();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
